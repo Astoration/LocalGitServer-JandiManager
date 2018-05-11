@@ -1,0 +1,21 @@
+#!/bin/bash
+LAST_COMMIT="$(git log -1 -p)"
+URL=$(../jandi.config)
+HEADER="Accept: application/vnd.tosslab.jandi-v2+json"
+HEADER_TYPE="Content-Type: application/json"
+SAVEIFS=$IFS
+IFS=$'\n'
+LAST_COMMIT=($LAST_COMMIT)
+# Restore IFS
+IFS=$SAVEIFS
+CONTENT=""
+for (( i=0; i<${#LAST_COMMIT[@]}; i++ ))
+do
+	if ((6 <= ${i})); then
+		CONTENT+="${LAST_COMMIT[$i]}"
+		CONTENT+="\\n"
+	fi
+done
+BODY="{\"body\":\"[[${LAST_COMMIT[0]}]](http://url_to_text) 새로운 커밋이 추가되었습니다. -${LAST_COMMIT[1]}\",\"connectColor\":\"#FAC11B\",\"connectInfo\":[{\"title\":\"${LAST_COMMIT[3]}\",\"description\":\"${CONTENT}\"}]}"
+echo "$BODY"
+curl -X POST "${URL}" -H "${HEADER}" -H "${HEADER_TYPE}" --data-binary "${BODY}"
